@@ -1,0 +1,91 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: heimdall
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: heimdall
+  namespace: heimdall
+  labels:
+    app: heimdall
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: heimdall
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: heimdall
+    spec:
+      volumes:
+        - name: heimdall-volume
+          hostPath:
+            path: /mnt/ssd/heimdall/
+            type: Directory
+      containers:
+        - name: heimdall
+          image: 'linuxserver/heimdall'
+          resources:
+            limits:
+              cpu: 100m
+              memory: 200Mi
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+            - name: https
+              containerPort: 443
+              protocol: TCP
+          volumeMounts:
+            - name: heimdall-volume
+              mountPath: /config
+          imagePullPolicy: Always
+      restartPolicy: Always
+      hostNetwork: true
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: heimdall
+  namespace: heimdall
+  labels:
+    app: heimdall
+    kubernetes.io/name: heimdall
+spec:
+  externalIPs:
+  - 192.168.0.10
+  ports:
+    - name: heimdallhttps
+      protocol: TCP
+      port: 443
+      targetPort: 443
+      nodePort: 31440
+    - name: heimdallhttp
+      protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 32441
+  selector:
+    app: heimdall
+  type: NodePort
+  externalTrafficPolicy: Local
+
+

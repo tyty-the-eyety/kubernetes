@@ -1,0 +1,90 @@
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: homeassistant
+  labels:
+    name: homeassistant
+
+---
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: homeassistant
+  namespace: homeassistant
+  labels:
+    app: homeassistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homeassistant
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: homeassistant
+    spec:
+      volumes:
+        - name: config-volume
+          hostPath:
+            path: /mnt/ssd/homeassistant/
+            type: Directory
+      containers:
+        - name: homeassistant
+          image: 'homeassistant/home-assistant'
+          resources:
+            limits:
+              cpu: 200m
+              memory: 200Mi
+          ports:
+            - name: http
+              containerPort: 8123
+              protocol: TCP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+      restartPolicy: Always
+      hostNetwork: true
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+  
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: homeassistant
+  namespace: homeassistant
+  labels:
+    app: homeassistant
+    kubernetes.io/name: homeassistant
+spec:
+  ports:
+    - name: homeassistant
+      protocol: TCP
+      port: 8123
+      targetPort: 8123
+      nodePort: 30438
+  selector:
+    app: homeassistant
+  type: NodePort
+  sessionAffinity: None
+
+

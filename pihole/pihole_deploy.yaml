@@ -1,0 +1,83 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pihole
+
+  
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pihole-deploy
+  namespace: pihole
+  labels:
+    app: pihole
+spec:   
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pihole
+  template:
+    metadata:
+      labels:
+        app: pihole
+    spec:
+      containers:
+      - name: pihole
+        # https://hub.docker.com/r/pihole/pihole/tags
+        image: pihole/pihole:latest
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: TZ
+            value: "Europe/London"
+          - name: WEBPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pihole-secret
+                key: password
+        securityContext:
+          privileged: true
+        ports:
+          - containerPort: 53
+            name: tcpdns
+            hostPort: 53
+            protocol: TCP
+          - containerPort: 53
+            name: udpdns
+            hostPort: 53
+            protocol: UDP
+          - containerPort: 67
+            name: udp67
+            protocol: UDP
+          - containerPort: 80
+            name: http
+            hostPort: 8001
+            protocol: TCP
+          - containerPort: 443
+            name: https
+            hostPort: 4444
+            protocol: TCP
+        volumeMounts:
+          - name: etc
+            mountPath: /etc/pihole
+          - name: dnsmasq
+            mountPath: /etc/dnsmasq.d
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 100m
+          limits:
+            memory: 2Gi
+            cpu: 1
+      volumes:
+        - name: etc
+          hostPath:
+            path: /mnt/ssd/pihole
+            type: Directory
+        - name: dnsmasq
+          hostPath:
+            path: /mnt/ssd/dnsmasq.d
+            type: Directory
+
+

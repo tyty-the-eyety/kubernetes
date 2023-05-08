@@ -1,0 +1,63 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pialert
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pialert-deploy
+  namespace: pialert
+  labels:
+    app: pialert
+spec:   
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pialert
+  template:
+    metadata:
+      labels:
+        app: pialert
+    spec:
+      hostNetwork: yes
+      containers:
+      - name: pialert
+        #hostNetwork: true
+        image: "jokobsk/pi.alert:latest"    
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: TZ
+            value: "Europe/London"
+              #- name: PORT
+              #value: 20211
+        volumeMounts:
+          - name: config
+            mountPath: /home/pi/pialert/config
+          - name: db 
+            mountPath: /home/pi/pialert/db
+          - name: log 
+            mountPath: /home/pi/pialert/front/log
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 100m
+          limits:
+            memory: 512Mi
+            cpu: 1
+      volumes:
+        - name: config
+          hostPath:
+            path: /mnt/ssd/pialert/config
+            type: Directory
+        - name: db
+          hostPath:
+            path: /mnt/ssd/pialert/db
+            type: Directory
+        - name: log
+          hostPath:
+            path: /mnt/ssd/pialert/log
+            type: Directory
+

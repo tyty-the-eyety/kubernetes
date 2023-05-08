@@ -1,0 +1,54 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: smbshare
+  namespace: smb
+  labels:
+    app: smb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smb
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: smb
+    spec:
+      volumes:
+        - name: smb-volume
+          hostPath:
+            path: /mnt/ssd/smb/
+            type: Directory
+      containers:
+        - name: smb
+          image: 'dperson/samba'
+          resources:
+            limits:
+              cpu: 200m
+              memory: 200Mi
+          ports:
+            - name: smb
+              containerPort: 445
+              protocol: TCP
+            - name: netbios
+              containerPort: 139
+              protocol: TCP
+          volumeMounts:
+            - name: smb-volume
+              mountPath: /mount
+          imagePullPolicy: Always
+      restartPolicy: Always
+      hostNetwork: true
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600

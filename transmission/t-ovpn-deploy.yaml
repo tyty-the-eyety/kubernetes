@@ -1,0 +1,189 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: ./kompose convert
+    kompose.version: 1.26.0 (40646f47)
+    org.opencontainers.image.revision: 47f32618629b0144f492b9116f77978d4c991712
+    org.opencontainers.image.source: https://github.com/haugene/docker-transmission-openvpn
+  creationTimestamp: null
+  labels:
+    io.kompose.service: transmission-openvpn
+  name: transmission-openvpn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: transmission-openvpn
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: ./kompose convert
+        kompose.version: 1.26.0 (40646f47)
+        org.opencontainers.image.revision: 47f32618629b0144f492b9116f77978d4c991712
+        org.opencontainers.image.source: https://github.com/haugene/docker-transmission-openvpn
+      creationTimestamp: null
+      labels:
+        io.kompose.service: transmission-openvpn
+    spec:
+      containers:
+#        - args:
+#            - dumb-init /etc/openvpn/start.sh
+        - image: haugene/transmission-openvpn:latest
+          name: transmission-openvpn
+          command: ["sh", "-c"]
+          args: ["/etc/openvpn/start.sh;"]
+
+          env:
+            - name: CREATE_TUN_DEVICE
+              value: "true"
+            - name: DROP_DEFAULT_ROUTE
+            - name: ENABLE_UFW
+              value: "false"
+            - name: GLOBAL_APPLY_PERMISSIONS
+              value: "true"
+            - name: HEALTH_CHECK_HOST
+              value: google.com
+            - name: LOCAL_NETWORK
+              value: 192.168.86.0/24
+            - name: LOG_TO_STDOUT
+              value: "false"
+            - name: OPENVPN_CONFIG
+              value: UK-Hull_TCP1195_SMART
+            - name: OPENVPN_OPTS
+              value: --inactive 3600 --ping 10 --ping-exit 60
+            - name: OPENVPN_PASSWORD
+              value: password
+            - name: OPENVPN_PROVIDER
+              value: SMARTDNSPROXY
+            - name: OPENVPN_USERNAME
+              value: tyronesch
+            - name: PATH
+              value: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            - name: PGID
+              value: "100"
+            - name: PUID
+              value: "1000"
+            - name: REVISION
+              value: 47f32618629b0144f492b9116f77978d4c991712
+            - name: TRANSMISSION_DOWNLOAD_DIR
+              value: /data/completed
+            - name: TRANSMISSION_HOME
+              value: /data/transmission-home
+            - name: TRANSMISSION_INCOMPLETE_DIR
+              value: /data/incomplete
+            - name: TRANSMISSION_RPC_PORT
+              value: "9091"
+            - name: TRANSMISSION_WATCH_DIR
+              value: /data/watch
+            - name: UFW_ALLOW_GW_NET
+              value: "false"
+            - name: UFW_DISABLE_IPTABLES_REJECT
+              value: "false"
+            - name: UFW_EXTRA_PORTS
+            - name: WEBPROXY_ENABLED
+              value: "true"
+            - name: WEBPROXY_PASSWORD
+            - name: WEBPROXY_PORT
+              value: "8888"
+            - name: WEBPROXY_USERNAME
+
+          ports:
+            - containerPort: 9091
+          resources: {}
+          securityContext:
+            capabilities:
+              add:
+                - AUDIT_WRITE
+                - CHOWN
+                - DAC_OVERRIDE
+                - FOWNER
+                - FSETID
+                - KILL
+                - MKNOD
+                - NET_BIND_SERVICE
+                - NET_RAW
+                - SETFCAP
+                - SETGID
+                - SETPCAP
+                - SETUID
+                - SYS_CHROOT
+              drop:
+                - AUDIT_CONTROL
+                - BLOCK_SUSPEND
+                - DAC_READ_SEARCH
+                - IPC_LOCK
+                - IPC_OWNER
+                - LEASE
+                - LINUX_IMMUTABLE
+                - MAC_ADMIN
+                - MAC_OVERRIDE
+                - NET_ADMIN
+                - NET_BROADCAST
+                - SYSLOG
+                - SYS_ADMIN
+                - SYS_BOOT
+                - SYS_MODULE
+                - SYS_NICE
+                - SYS_PACCT
+                - SYS_PTRACE
+                - SYS_RAWIO
+                - SYS_RESOURCE
+                - SYS_TIME
+                - SYS_TTY_CONFIG
+                - WAKE_ALARM
+            privileged: true
+          volumeMounts:
+            - mountPath: /data
+              name: data
+            #- mountPath: /etc/localtime
+            #  name: transmission-openvpn-claim1
+            - mountPath: /config
+              name: config
+            - mountPath: /etc/openvpn/custom/default.ovpn
+              name: ovpn-file
+      hostname: dbb263e9539a
+      restartPolicy: Always
+      volumes:
+        - name: data
+          hostPath:
+            path: /mnt/ssd/transmission/data
+            type: Directory
+        - name: config
+          hostPath:
+            path: /mnt/ssd/transmission/config
+            type: Directory
+        - name: ovpn-file
+          hostPath:
+            path: /mnt/ssd/transmission/default.ovpn
+            type: File
+
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: ./kompose convert
+    kompose.version: 1.26.0 (40646f47)
+    org.opencontainers.image.revision: 47f32618629b0144f492b9116f77978d4c991712
+    org.opencontainers.image.source: https://github.com/haugene/docker-transmission-openvpn
+  creationTimestamp: null
+  labels:
+    io.kompose.service: transmission-openvpn
+  name: transmission-openvpn
+spec:
+  ports:
+    - name: "9091"
+      port: 9091
+      targetPort: 9091
+  selector:
+    io.kompose.service: transmission-openvpn
+status:
+  loadBalancer: {}
+
+
