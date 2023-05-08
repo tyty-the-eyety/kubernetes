@@ -47,18 +47,20 @@ spec:
               value: "true"
             - name: HEALTH_CHECK_HOST
               value: google.com
-            - name: LOCAL_NETWORK
-              value: 192.168.86.0/24
+                #- name: LOCAL_NETWORK
+                #value: 192.168.86.0/24
             - name: LOG_TO_STDOUT
               value: "false"
-            - name: OPENVPN_CONFIG
-              value: UK-Hull_TCP1195_SMART
+                #- name: OPENVPN_CONFIG
+                #value: UK-Hull_TCP1195_SMART
             - name: OPENVPN_OPTS
               value: --inactive 3600 --ping 10 --ping-exit 60
             - name: OPENVPN_PASSWORD
-              value: password
+              value: Basil@2013
+                #- name: OPENVPN_PROVIDER
+                #value: SMARTDNSPROXY
             - name: OPENVPN_PROVIDER
-              value: SMARTDNSPROXY
+              value: custom
             - name: OPENVPN_USERNAME
               value: tyronesch
             - name: PATH
@@ -143,23 +145,23 @@ spec:
             #  name: transmission-openvpn-claim1
             - mountPath: /config
               name: config
-            - mountPath: /etc/openvpn/custom/default.ovpn
+            - mountPath: /etc/openvpn/custom/
               name: ovpn-file
       hostname: dbb263e9539a
       restartPolicy: Always
       volumes:
         - name: data
           hostPath:
-            path: /mnt/ssd/transmission/data
+            path: /mnt/ssd/transmission/data/
             type: Directory
         - name: config
           hostPath:
-            path: /mnt/ssd/transmission/config
+            path: /mnt/ssd/transmission/config/
             type: Directory
         - name: ovpn-file
           hostPath:
-            path: /mnt/ssd/transmission/default.ovpn
-            type: File
+            path: /mnt/ssd/transmission/ovpn
+            type: Directory
 
 
 
@@ -177,13 +179,38 @@ metadata:
     io.kompose.service: transmission-openvpn
   name: transmission-openvpn
 spec:
+  type: NodePort
   ports:
     - name: "9091"
       port: 9091
       targetPort: 9091
+      nodePort: 31345
   selector:
     io.kompose.service: transmission-openvpn
 status:
   loadBalancer: {}
+
+
+
+    #---
+    #apiVersion: networking.k8s.io/v1
+    #kind: Ingress
+    #metadata:
+  #namespace: transmission-openvpn
+  #name: transmission-openvpn
+    #annotations:
+    #kubernetes.io/ingress.class: "nginx"
+    #spec:
+    #rules:
+    #- host: hogwart
+    #http:
+    #  paths:
+    #   - path: /transmission
+    #     pathType: Prefix
+    #     backend:
+    #      service:
+    #        name: transmission
+    #        port:
+    #          number: 31345
 
 
