@@ -1,0 +1,42 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: duckdns
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: duckdns
+  namespace: duckdns
+  labels:
+    k8s-app: duckdns
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: duckdns
+  template:
+    metadata:
+      labels:
+        k8s-app: duckdns
+    spec:
+      containers:
+      - name: smokeping
+        image: linuxserver/duckdns
+        imagePullPolicy: Always
+        env:
+          - name: PUID
+            value: "1000"
+          - name: PGID
+            value: "1000"
+          - name: TZ
+            value: "Europe/London"
+          - name: TOKEN
+            value: "token-guid"
+          - name: SUBDOMAINS
+            value: "web1.duckdns.org"
+          - name: SUBDOMAINS
+            value: "web1.duckdns.org"
