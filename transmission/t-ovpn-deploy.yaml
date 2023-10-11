@@ -56,7 +56,7 @@ spec:
             - name: OPENVPN_OPTS
               value: --inactive 3600 --ping 10 --ping-exit 60
             - name: OPENVPN_PASSWORD
-              value: Basil@2013
+              value: <pass>
                 #- name: OPENVPN_PROVIDER
                 #value: SMARTDNSPROXY
             - name: OPENVPN_PROVIDER
